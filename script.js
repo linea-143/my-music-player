@@ -134,6 +134,7 @@ function playSong(index) {
         .getPublicUrl(song.name);
 
     audio.src = data.publicUrl;
+    console.log("MP3 URL:", data.publicUrl);
 
     currentTitle.textContent =
         song.name.replace(".mp3", "");
