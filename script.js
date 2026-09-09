@@ -196,105 +196,48 @@ function displaySongs(list) {
 
 async function playSong(index) {
 
-    if (!songs[index]) {
-
-        console.error("Song not found");
-
-        return;
-    }
-
+    if (!songs[index]) return;
 
     currentIndex = index;
 
-
     const song = songs[index];
 
+    console.log("Playing:", song.name);
 
-    console.log(
-        "Trying to play:",
-        song.name
-    );
-
-
-    // --------------------------------------
-    // CREATE SIGNED URL
-    // --------------------------------------
-
-    const { data, error } = await db
+    // Get public URL
+    const { data } = db
         .storage
         .from("music")
-        .createSignedUrl(
-            song.name,
-            3600
-        );
+        .getPublicUrl(song.name);
 
+    const audioUrl = data.publicUrl;
 
-    if (error) {
+    console.log("Audio URL:", audioUrl);
 
-        console.error(
-            "Signed URL error:",
-            error
-        );
+    // Set audio source
+    audio.src = audioUrl;
 
-        alert(
-            "Could not load song:\n" +
-            error.message
-        );
-
-        return;
-    }
-
-
-    console.log(
-        "Audio URL:",
-        data.signedUrl
-    );
-
-
-    // --------------------------------------
-    // SET AUDIO
-    // --------------------------------------
-
-    audio.src =
-        data.signedUrl;
-
-
-    audio.load();
-
-
+    // Update player information
     currentTitle.textContent =
         song.name.replace(/\.mp3$/i, "");
 
+    currentArtist.textContent = "My Music";
 
-    currentArtist.textContent =
-        "My Music";
+    // Load the audio
+    audio.load();
 
-
-    // --------------------------------------
-    // PLAY
-    // --------------------------------------
-
+    // Play after the browser has loaded it
     try {
-
         await audio.play();
 
         playBtn.textContent = "⏸";
 
+    } catch (error) {
+
+        console.error("Playback error:", error);
+
+        playBtn.textContent = "▶";
     }
-
-    catch (error) {
-
-        console.error(
-            "Playback error:",
-            error
-        );
-
-        alert(
-            "Could not play the song."
-        );
-
-    }
-
 }
 
 
