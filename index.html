@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#0b0b0f">
+    <meta name="description" content="My personal music player">
+
+    <title>My Music</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h1>🎵 My Music</h1>
+
+        <nav>
+            <button class="nav-btn active">⌂ Home</button>
+            <button class="nav-btn">♡ Favorites</button>
+            <button class="nav-btn">☷ Playlists</button>
+        </nav>
+
+        <label class="upload-btn">
+            ＋ Add Music
+            <input type="file" id="musicInput" accept="audio/*" multiple>
+        </label>
+    </aside>
+
+
+    <!-- Main -->
+    <main class="main">
+
+        <header>
+            <div>
+                <p class="welcome">WELCOME BACK</p>
+                <h2>Your Music</h2>
+            </div>
+
+            <input
+                type="search"
+                id="searchInput"
+                placeholder="🔍 Search songs..."
+            >
+        </header>
+
+
+        <!-- Recently Added -->
+        <section>
+            <h3>Your Songs</h3>
+
+            <div id="songList" class="song-list">
+                <div class="empty">
+                    <div>🎧</div>
+                    <p>No music added yet</p>
+                    <small>Click "Add Music" to start</small>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- Player -->
+    <div class="player">
+
+        <div class="now-playing">
+            <div class="cover" id="cover">🎵</div>
+
+            <div class="song-info">
+                <strong id="currentTitle">Nothing Playing</strong>
+                <span id="currentArtist">Choose a song</span>
+            </div>
+        </div>
+
+
+        <div class="controls">
+
+            <div class="progress-container">
+                <span id="currentTime">0:00</span>
+
+                <input
+                    type="range"
+                    id="progress"
+                    value="0"
+                    min="0"
+                    max="100"
+                >
+
+                <span id="duration">0:00</span>
+            </div>
+
+            <div class="buttons">
+                <button id="shuffleBtn">🔀</button>
+                <button id="prevBtn">⏮</button>
+                <button id="playBtn" class="play">▶</button>
+                <button id="nextBtn">⏭</button>
+                <button id="repeatBtn">🔁</button>
+            </div>
+
+        </div>
+
+        <div class="volume">
+            🔊
+            <input
+                type="range"
+                id="volume"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.8"
+            >
+        </div>
+
+    </div>
+
+
+    <audio id="audio"></audio>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
