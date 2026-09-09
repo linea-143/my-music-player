@@ -3,7 +3,7 @@
 // ===============================
 
 const SUPABASE_URL = "https://llswlksrjzccdsfohjvz.supabase.co";
-const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+const SUPABASE_KEY = "sb_publishable_Ry4sHb_5RbWtA1E6l01uBg_3QCkADsK";
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
