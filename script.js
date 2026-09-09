@@ -1,44 +1,69 @@
-// ===============================
-// SUPABASE CONFIG
-// ===============================
+// ==========================================
+// SUPABASE CONFIGURATION
+// ==========================================
 
 const SUPABASE_URL = "https://llswlksrjzccdsfohjvz.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_Ry4sHb_5RbWtA1E6l01uBg_3QCkADsK";
 
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const db = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-// ===============================
-// MUSIC PLAYER
-// ===============================
+// ==========================================
+// ELEMENTS
+// ==========================================
 
 const audio = document.getElementById("audio");
+
 const songList = document.getElementById("songList");
 
 const playBtn = document.getElementById("playBtn");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-const currentTitle = document.getElementById("currentTitle");
-const currentArtist = document.getElementById("currentArtist");
+const currentTitle =
+    document.getElementById("currentTitle");
 
-const currentTime = document.getElementById("currentTime");
-const duration = document.getElementById("duration");
-const progress = document.getElementById("progress");
+const currentArtist =
+    document.getElementById("currentArtist");
 
-const volume = document.getElementById("volume");
-const searchInput = document.getElementById("searchInput");
+const currentTime =
+    document.getElementById("currentTime");
+
+const duration =
+    document.getElementById("duration");
+
+const progress =
+    document.getElementById("progress");
+
+const volume =
+    document.getElementById("volume");
+
+const searchInput =
+    document.getElementById("searchInput");
+
+
+// ==========================================
+// VARIABLES
+// ==========================================
 
 let songs = [];
+
 let currentIndex = -1;
 
 
-// ===============================
+// ==========================================
 // LOAD SONGS FROM SUPABASE
-// ===============================
+// ==========================================
 
 async function loadSongs() {
+
+    console.log("Loading songs...");
 
     const { data, error } = await db
         .storage
@@ -52,7 +77,12 @@ async function loadSongs() {
         });
 
     if (error) {
-        console.error("Error loading songs:", error);
+
+        console.error(
+            "Error loading songs:",
+            error
+        );
+
         songList.innerHTML = `
             <div class="empty">
                 <div>⚠️</div>
@@ -60,243 +90,528 @@ async function loadSongs() {
                 <small>${error.message}</small>
             </div>
         `;
+
         return;
     }
 
+
     songs = data.filter(file =>
-        file.name.toLowerCase().endsWith(".mp3")
+        file.name
+            .toLowerCase()
+            .endsWith(".mp3")
     );
+
+
+    console.log("Songs found:", songs);
+
 
     displaySongs(songs);
 }
 
 
-// ===============================
+// ==========================================
 // DISPLAY SONGS
-// ===============================
+// ==========================================
 
 function displaySongs(list) {
 
     if (list.length === 0) {
+
         songList.innerHTML = `
             <div class="empty">
                 <div>🎧</div>
                 <p>No music added yet</p>
-                <small>Upload an MP3 to your Supabase bucket</small>
+                <small>
+                    Upload an MP3 to your Supabase bucket
+                </small>
             </div>
         `;
+
         return;
     }
 
+
     songList.innerHTML = "";
 
-    list.forEach((song, index) => {
 
-        const item = document.createElement("div");
+    list.forEach((song) => {
+
+        const originalIndex =
+            songs.indexOf(song);
+
+
+        const item =
+            document.createElement("div");
+
 
         item.className = "song";
 
-        item.innerHTML = `
-            <div class="song-cover">🎵</div>
 
-            <div class="song-details">
-                <strong>${song.name.replace(".mp3", "")}</strong>
-                <span>My Music</span>
+        item.innerHTML = `
+            <div class="song-cover">
+                🎵
             </div>
 
-            <button class="song-play">▶</button>
+            <div class="song-details">
+
+                <strong>
+                    ${song.name.replace(/\.mp3$/i, "")}
+                </strong>
+
+                <span>
+                    My Music
+                </span>
+
+            </div>
+
+            <button class="song-play">
+                ▶
+            </button>
         `;
 
-        item.querySelector(".song-play").addEventListener("click", () => {
-            playSong(index);
-        });
+
+        const button =
+            item.querySelector(".song-play");
+
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                playSong(originalIndex);
+
+            }
+        );
+
 
         songList.appendChild(item);
+
     });
 }
 
 
-// ===============================
+// ==========================================
 // PLAY SONG
-// ===============================
+// ==========================================
 
-function playSong(index) {
+async function playSong(index) {
 
-    if (!songs[index]) return;
+    if (!songs[index]) {
 
-    currentIndex = index;
+        console.error("Song not found");
 
-    const song = songs[index];
-
-    const { data } = db
-        .storage
-        .from("music")
-        .getPublicUrl(song.name);
-
-    audio.src = data.publicUrl;
-    console.log("MP3 URL:", data.publicUrl);
-
-    currentTitle.textContent =
-        song.name.replace(".mp3", "");
-
-    currentArtist.textContent = "My Music";
-
-    audio.play();
-
-    playBtn.textContent = "⏸";
-}
-
-
-// ===============================
-// PLAY / PAUSE
-// ===============================
-
-playBtn.addEventListener("click", () => {
-
-    if (!audio.src) {
-        if (songs.length > 0) {
-            playSong(0);
-        }
         return;
     }
 
-    if (audio.paused) {
-        audio.play();
+
+    currentIndex = index;
+
+
+    const song = songs[index];
+
+
+    console.log(
+        "Trying to play:",
+        song.name
+    );
+
+
+    // --------------------------------------
+    // CREATE SIGNED URL
+    // --------------------------------------
+
+    const { data, error } = await db
+        .storage
+        .from("music")
+        .createSignedUrl(
+            song.name,
+            3600
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Signed URL error:",
+            error
+        );
+
+        alert(
+            "Could not load song:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+
+    console.log(
+        "Audio URL:",
+        data.signedUrl
+    );
+
+
+    // --------------------------------------
+    // SET AUDIO
+    // --------------------------------------
+
+    audio.src =
+        data.signedUrl;
+
+
+    audio.load();
+
+
+    currentTitle.textContent =
+        song.name.replace(/\.mp3$/i, "");
+
+
+    currentArtist.textContent =
+        "My Music";
+
+
+    // --------------------------------------
+    // PLAY
+    // --------------------------------------
+
+    try {
+
+        await audio.play();
+
         playBtn.textContent = "⏸";
-    } else {
-        audio.pause();
-        playBtn.textContent = "▶";
-    }
-});
 
-
-// ===============================
-// NEXT
-// ===============================
-
-nextBtn.addEventListener("click", () => {
-
-    if (songs.length === 0) return;
-
-    currentIndex++;
-
-    if (currentIndex >= songs.length) {
-        currentIndex = 0;
     }
 
-    playSong(currentIndex);
-});
+    catch (error) {
 
+        console.error(
+            "Playback error:",
+            error
+        );
 
-// ===============================
-// PREVIOUS
-// ===============================
+        alert(
+            "Could not play the song."
+        );
 
-prevBtn.addEventListener("click", () => {
-
-    if (songs.length === 0) return;
-
-    currentIndex--;
-
-    if (currentIndex < 0) {
-        currentIndex = songs.length - 1;
     }
 
-    playSong(currentIndex);
-});
+}
 
 
-// ===============================
-// AUTO NEXT
-// ===============================
+// ==========================================
+// PLAY / PAUSE
+// ==========================================
 
-audio.addEventListener("ended", () => {
+playBtn.addEventListener(
+    "click",
+    async () => {
 
-    currentIndex++;
+        if (!audio.src) {
 
-    if (currentIndex >= songs.length) {
-        currentIndex = 0;
+            if (songs.length > 0) {
+
+                await playSong(0);
+
+            }
+
+            return;
+        }
+
+
+        if (audio.paused) {
+
+            try {
+
+                await audio.play();
+
+                playBtn.textContent = "⏸";
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Play error:",
+                    error
+                );
+
+            }
+
+        }
+
+        else {
+
+            audio.pause();
+
+            playBtn.textContent = "▶";
+
+        }
+
     }
-
-    playSong(currentIndex);
-});
+);
 
 
-// ===============================
-// PROGRESS BAR
-// ===============================
+// ==========================================
+// NEXT SONG
+// ==========================================
 
-audio.addEventListener("timeupdate", () => {
+nextBtn.addEventListener(
+    "click",
+    () => {
 
-    if (!audio.duration) return;
-
-    progress.value =
-        (audio.currentTime / audio.duration) * 100;
-
-    currentTime.textContent =
-        formatTime(audio.currentTime);
-
-    duration.textContent =
-        formatTime(audio.duration);
-});
+        if (songs.length === 0) return;
 
 
-progress.addEventListener("input", () => {
-
-    if (!audio.duration) return;
-
-    audio.currentTime =
-        (progress.value / 100) * audio.duration;
-});
+        currentIndex++;
 
 
-// ===============================
+        if (
+            currentIndex >=
+            songs.length
+        ) {
+
+            currentIndex = 0;
+
+        }
+
+
+        playSong(currentIndex);
+
+    }
+);
+
+
+// ==========================================
+// PREVIOUS SONG
+// ==========================================
+
+prevBtn.addEventListener(
+    "click",
+    () => {
+
+        if (songs.length === 0) return;
+
+
+        currentIndex--;
+
+
+        if (currentIndex < 0) {
+
+            currentIndex =
+                songs.length - 1;
+
+        }
+
+
+        playSong(currentIndex);
+
+    }
+);
+
+
+// ==========================================
+// AUTOMATICALLY PLAY NEXT
+// ==========================================
+
+audio.addEventListener(
+    "ended",
+    () => {
+
+        if (songs.length === 0) return;
+
+
+        currentIndex++;
+
+
+        if (
+            currentIndex >=
+            songs.length
+        ) {
+
+            currentIndex = 0;
+
+        }
+
+
+        playSong(currentIndex);
+
+    }
+);
+
+
+// ==========================================
+// AUDIO LOADING
+// ==========================================
+
+audio.addEventListener(
+    "loadedmetadata",
+    () => {
+
+        console.log(
+            "Audio duration:",
+            audio.duration
+        );
+
+
+        duration.textContent =
+            formatTime(audio.duration);
+
+    }
+);
+
+
+// ==========================================
+// AUDIO ERROR
+// ==========================================
+
+audio.addEventListener(
+    "error",
+    () => {
+
+        console.error(
+            "Audio element error:",
+            audio.error
+        );
+
+    }
+);
+
+
+// ==========================================
+// PROGRESS
+// ==========================================
+
+audio.addEventListener(
+    "timeupdate",
+    () => {
+
+        if (!audio.duration) return;
+
+
+        progress.value =
+            (
+                audio.currentTime /
+                audio.duration
+            ) * 100;
+
+
+        currentTime.textContent =
+            formatTime(
+                audio.currentTime
+            );
+
+
+        duration.textContent =
+            formatTime(
+                audio.duration
+            );
+
+    }
+);
+
+
+// ==========================================
+// SEEK
+// ==========================================
+
+progress.addEventListener(
+    "input",
+    () => {
+
+        if (!audio.duration) return;
+
+
+        audio.currentTime =
+            (
+                progress.value / 100
+            ) * audio.duration;
+
+    }
+);
+
+
+// ==========================================
 // VOLUME
-// ===============================
+// ==========================================
 
-volume.addEventListener("input", () => {
-    audio.volume = volume.value;
-});
+volume.addEventListener(
+    "input",
+    () => {
+
+        audio.volume =
+            volume.value;
+
+    }
+);
+
 
 audio.volume = 0.8;
 
 
-// ===============================
+// ==========================================
 // SEARCH
-// ===============================
+// ==========================================
 
-searchInput.addEventListener("input", () => {
+searchInput.addEventListener(
+    "input",
+    () => {
 
-    const search = searchInput.value.toLowerCase();
-
-    const filtered = songs.filter(song =>
-        song.name.toLowerCase().includes(search)
-    );
-
-    displaySongs(filtered);
-});
+        const search =
+            searchInput.value
+                .toLowerCase();
 
 
-// ===============================
-// TIME FORMAT
-// ===============================
+        const filtered =
+            songs.filter(song =>
+                song.name
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+
+        displaySongs(filtered);
+
+    }
+);
+
+
+// ==========================================
+// FORMAT TIME
+// ==========================================
 
 function formatTime(seconds) {
 
-    if (isNaN(seconds)) return "0:00";
+    if (
+        isNaN(seconds) ||
+        !isFinite(seconds)
+    ) {
 
-    const minutes = Math.floor(seconds / 60);
+        return "0:00";
 
-    const secs = Math.floor(seconds % 60)
-        .toString()
-        .padStart(2, "0");
+    }
 
-    return `${minutes}:${secs}`;
+
+    const minutes =
+        Math.floor(seconds / 60);
+
+
+    const secondsPart =
+        Math.floor(seconds % 60)
+            .toString()
+            .padStart(2, "0");
+
+
+    return (
+        minutes +
+        ":" +
+        secondsPart
+    );
+
 }
 
 
-// ===============================
-// START
-// ===============================
+// ==========================================
+// START MUSIC PLAYER
+// ==========================================
 
 loadSongs();
